@@ -4,7 +4,7 @@ pipeline {
         stage("Git checkout") {
             steps {
                 script {
-                    git 'https://github.com/07prashantg/sampledemo.git'
+                    sh 'git clone https://github.com/07prashantg/sampledemo.git'
                     sh "ls -la"
                     sh "pwd"
                 }
