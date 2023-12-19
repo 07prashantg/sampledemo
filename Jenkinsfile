@@ -5,6 +5,8 @@ pipeline {
             steps {
                 script {
                     git 'https://github.com/07prashantg/sampledemo.git'
+                    sh "ls -la"
+                    sh "pwd"
                 }
             }
         }
