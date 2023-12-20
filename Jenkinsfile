@@ -1,21 +1,25 @@
+@Library('groovy-library') _
+
 pipeline {
     agent any 
     stages {
-        stage("Git checkout") {
-            steps {
-                script {
-                    git 'https://github.com/07prashantg/sampledemo.git'
-                    sh "ls -la"
-                    sh "pwd"
-                }
+        stage('Git Checkout'){
+                    when { expression {  params.action == 'create' } }
+            steps{
+            gitCheckout(
+                branch: "main",
+                url: "https://github.com/07prashantg/sampledemo.git"
+            )
             }
         }
         
-        stage("Maven Build") {
-            steps {
-                script {
-                    sh "mvn clean install -DskipTests"
-                }
+        stage('Maven Build : maven'){
+         when { expression {  params.action == 'create' } }
+            steps{
+               script{
+                   mvnBuild()
+                   'pwd'
+               }
             }
         }
         
