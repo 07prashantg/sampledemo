@@ -24,7 +24,8 @@ pipeline {
                 script {
                     // Assuming your JAR file is in the target directory
                     def jarFileName = sh(script: 'ls target/*.jar', returnStdout: true).trim()
-                    cp "${jarFileName}" "/Users/prashant/Desktop/Project1/"
+                    echo("i got file")
+                    cp "${jarFileName}" "/home/ec2-user"
                 }
             }
         }
