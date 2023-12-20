@@ -7,6 +7,12 @@ pipeline {
         choice(name: 'action', choices: 'create\ndelete', description: 'Choose create/Destroy')
     }
 
+    environment {
+        REMOTE_SERVER_IP = '3.110.117.85'
+        REMOTE_SERVER_USER = 'ec2-user'
+        REMOTE_SERVER_PATH = '/home/ec2-user/'
+    }
+
     stages {
         stage('Git Checkout'){
                     when { expression {  params.action == 'create' } }
@@ -35,7 +41,8 @@ pipeline {
                     def jarFileName = sh(script: 'ls target/*.jar', returnStdout: true).trim()
                     echo("i got file")
 
-                    sh "cp target/*.jar /home/ec2-user/"
+                    //sh "cp target/*.jar /home/ec2-user/"
+                    sh "scp target/*.jar ${REMOTE_SERVER_USER}@${REMOTE_SERVER_IP}:${REMOTE_SERVER_PATH}/"
                 }
             }
         }
