@@ -10,7 +10,7 @@ pipeline {
     environment {
         REMOTE_SERVER_IP = '3.110.117.85'
         REMOTE_SERVER_USER = 'ec2-user'
-        REMOTE_SERVER_PATH = '/home/ec2-user/'
+        REMOTE_SERVER_PATH = '/home/ec2-user'
     }
 
     stages {
@@ -42,7 +42,9 @@ pipeline {
                     echo("i got file")
 
                     //sh "cp target/*.jar /home/ec2-user/"
-                    sh "scp target/*.jar ${REMOTE_SERVER_USER}@${REMOTE_SERVER_IP}:${REMOTE_SERVER_PATH}/"
+                    withCredentials([sshUserPrivateKey(credentialsId: 'jar-deploy', keyFileVariable: 'SSH_PRIVATE_KEY')]){
+                        sh "scp -i $SSH_PRIVATE_KEY target/*.jar ${REMOTE_SERVER_USER}@${REMOTE_SERVER_IP}:${REMOTE_SERVER_PATH}/"
+                    }
                 }
             }
         }
