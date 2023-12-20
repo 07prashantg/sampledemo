@@ -4,7 +4,7 @@ pipeline {
         stage("Git checkout") {
             steps {
                 script {
-                    sh 'git clone https://github.com/07prashantg/sampledemo.git'
+                    git 'https://github.com/07prashantg/sampledemo.git'
                     sh "ls -la"
                     sh "pwd"
                 }
@@ -25,6 +25,7 @@ pipeline {
                     // Assuming your JAR file is in the target directory
                     def jarFileName = sh(script: 'ls target/*.jar', returnStdout: true).trim()
                     echo("i got file")
+
                     cp "${jarFileName}" "/home/ec2-user"
                 }
             }
