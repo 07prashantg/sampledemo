@@ -55,7 +55,7 @@ pipeline {
                     sh "scp -i /home/ec2-user/key.pem target/*.jar ${REMOTE_SERVER_USER}@${REMOTE_SERVER_IP}:${REMOTE_SERVER_PATH}"
                     echo("Copied JAR file to remote server")
                     
-                    }
+                    
                 }
             }
         }
