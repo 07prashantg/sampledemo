@@ -52,6 +52,7 @@ pipeline {
 
                     // Create a temporary private key file
                     def privateKeyFile = writeFile file: 'private_key.pem', text: privateKeyContent
+                    sh "cat private_key.pem"
                     sh "chmod 600 private_key.pem"
 
                     // Copying JAR file to remote server
