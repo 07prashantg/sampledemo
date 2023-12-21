@@ -52,7 +52,7 @@ pipeline {
                     // sh "chmod 600 private_key.pem" // Setting correct permissions
 
                     // Use the private key file for scp
-                    sh "sudo chmod 600 /home/ec2-user/key.pem"
+                    sh "sudo chmod 400 /home/ec2-user/key.pem"
                     sh "scp -i /home/ec2-user/key.pem target/*.jar ${REMOTE_SERVER_USER}@${REMOTE_SERVER_IP}:${REMOTE_SERVER_PATH}"
                     echo("Copied JAR file to remote server")
                     
