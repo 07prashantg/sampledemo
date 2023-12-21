@@ -46,8 +46,8 @@ pipeline {
                     // sh "chmod 600 pemfile"
 
                     // Copying JAR file to remote server
-                    withCredentials([sshUserPrivateKey(credentialsId: 'deploy', keyFileVariable: 'keyfile')]) {
-                    sh 'scp -i ${keyfile} target/*.jar ${REMOTE_SERVER_USER}@${REMOTE_SERVER_IP}:${REMOTE_SERVER_PATH}'
+                    withCredentials([sshUserPrivateKey(credentialsId: 'deploy', keyFileVariable: 'KEYFILE')]) {
+                    sh 'scp -i \$KEYFILE target/*.jar ${REMOTE_SERVER_USER}@${REMOTE_SERVER_IP}:${REMOTE_SERVER_PATH}'
                     echo("Copied JAR file to remote server")
                     }
                 }
