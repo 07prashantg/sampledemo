@@ -11,6 +11,7 @@ pipeline {
         REMOTE_SERVER_IP = '65.2.187.26'
         REMOTE_SERVER_USER = 'ec2-user'
         REMOTE_SERVER_PATH = '/home/ec2-user'
+        CREDENTIALS_ID = 'server-access'
     }
 
     stages {
@@ -43,8 +44,11 @@ pipeline {
 
                     //sh "cp target/*.jar /home/ec2-user/"
                     // withCredentials([sshUserPrivateKey(credentialsId: 'server-access', keyFileVariable: 'SSH_PRIVATE_KEY')]){
+
+                    def privateKey = credentials(CREDENTIALS_ID)
+                    sh "echo '${privateKey}' > private_key.pem"
                     withCredentials([sshUserPrivateKey(credentialsId: 'server-access', keyFileVariable: 'SSH_PRIVATE_KEY')]) {
-                        sh "scp -i ${SSH_PRIVATE_KEY} ${jarFileName} ${REMOTE_SERVER_USER}@${REMOTE_SERVER_IP}:${REMOTE_SERVER_PATH}/"
+                        sh "scp -i private_key.pem ${jarFileName} ${REMOTE_SERVER_USER}@${REMOTE_SERVER_IP}:${REMOTE_SERVER_PATH}/"
                         echo("Copied JAR file to remote server")
                     }
                 }
