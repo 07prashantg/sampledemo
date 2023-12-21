@@ -45,12 +45,11 @@ pipeline {
                     //sh "cp target/*.jar /home/ec2-user/"
                     // withCredentials([sshUserPrivateKey(credentialsId: 'server-access', keyFileVariable: 'SSH_PRIVATE_KEY')]){
 
-                    def privateKey = credentials(CREDENTIALS_ID)
-                    sh "echo '${privateKey}' > private_key.pem"
-                    withCredentials([sshUserPrivateKey(credentialsId: 'server-access', keyFileVariable: 'SSH_PRIVATE_KEY')]) {
-                        sh "scp -i private_key.pem ${jarFileName} ${REMOTE_SERVER_USER}@${REMOTE_SERVER_IP}:${REMOTE_SERVER_PATH}/"
-                        echo("Copied JAR file to remote server")
-                    }
+                    def privateKeyContent = credentials(CREDENTIALS_ID)
+                    def privateKeyFile = writeFile file: 'private_key.pem', text: privateKeyContent
+                    sh "chmod 600 private_key.pem"
+                    sh "scp -i private_key.pem ${jarFileName} ${REMOTE_SERVER_USER}@${REMOTE_SERVER_IP}:${REMOTE_SERVER_PATH}/"
+                    echo("Copied JAR file to remote server")
                 }
             }
         }
