@@ -46,9 +46,15 @@ pipeline {
                     // sh "chmod 600 pemfile"
 
                     // Copying JAR file to remote server
-                    withCredentials([sshUserPrivateKey(credentialsId: 'pemfile', keyFileVariable: 'KEYFILE')]) {
-                    sh 'scp -i ${KEYFILE} target/*.jar ${REMOTE_SERVER_USER}@${REMOTE_SERVER_IP}:${REMOTE_SERVER_PATH}'
+                    withCredentials([file(credentialsId: 'pemfile', variable: 'KEYFILE')]) {
+                    def privateKeyContent = readFile(KEYFILE).trim()
+                    sh "echo '${privateKeyContent}' > private_key.pem" // Writing content to a file
+                    sh "chmod 600 private_key.pem" // Setting correct permissions
+
+                    // Use the private key file for scp
+                    sh "scp -i private_key.pem target/*.jar ${REMOTE_SERVER_USER}@${REMOTE_SERVER_IP}:${REMOTE_SERVER_PATH}"
                     echo("Copied JAR file to remote server")
+                    }
                     }
                 }
             }
