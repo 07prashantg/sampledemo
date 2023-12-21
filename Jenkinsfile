@@ -11,7 +11,7 @@ pipeline {
         REMOTE_SERVER_IP = '65.2.187.26'
         REMOTE_SERVER_USER = 'ec2-user'
         REMOTE_SERVER_PATH = '/home/ec2-user'
-        CREDENTIALS_ID = 'pemfile'
+        //CREDENTIALS_ID = 'server-access'
     }
 
     stages {
@@ -46,7 +46,8 @@ pipeline {
                     // sh "chmod 600 pemfile"
 
                     // Copying JAR file to remote server
-                    sh "scp -i pemfile ${jarFileName} ${REMOTE_SERVER_USER}@${REMOTE_SERVER_IP}:${REMOTE_SERVER_PATH}"
+                    withCredentials([sshUserPrivateKey(credentialsId: 'server-access', keyFileVariable: 'keyfile')]) {
+                    sh 'scp -i ${keyfile} ${jarFileName} ${REMOTE_SERVER_USER}@${REMOTE_SERVER_IP}:${REMOTE_SERVER_PATH}'
                     echo("Copied JAR file to remote server")
                 }
             }
