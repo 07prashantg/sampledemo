@@ -46,6 +46,7 @@ pipeline {
                     withCredentials([sshUserPrivateKey(credentialsId: 'server-access', keyFileVariable: 'SSH_PRIVATE_KEY')]) {
                         sh "scp -i ${SSH_PRIVATE_KEY} ${jarFileName} ${REMOTE_SERVER_USER}@${REMOTE_SERVER_IP}:${REMOTE_SERVER_PATH}/"
                         echo("Copied JAR file to remote server")
+                    }
                 }
             }
         }
