@@ -40,14 +40,21 @@ pipeline {
                 script {
                     // Assuming your JAR file is in the target directory
                     def jarFileName = sh(script: 'ls target/*.jar', returnStdout: true).trim()
-                    echo("i got file")
+                    echo("Found JAR file: ${jarFileName}")
 
-                    //sh "cp target/*.jar /home/ec2-user/"
-                    // withCredentials([sshUserPrivateKey(credentialsId: 'server-access', keyFileVariable: 'SSH_PRIVATE_KEY')]){
+                    // Retrieve private key from Jenkins credential
+                    def privateKeyContent = ''
 
-                    def privateKeyContent = credentials(CREDENTIALS_ID)
+                    // Inject credential into environment
+                    withCredentials([sshUserPrivateKey(credentialsId: CREDENTIALS_ID, keyFileVariable: 'SSH_PRIVATE_KEY')]) {
+                        privateKeyContent = env.SSH_PRIVATE_KEY
+                    }
+
+                    // Create a temporary private key file
                     def privateKeyFile = writeFile file: 'private_key.pem', text: privateKeyContent
                     sh "chmod 600 private_key.pem"
+
+                    // Copying JAR file to remote server
                     sh "scp -i private_key.pem ${jarFileName} ${REMOTE_SERVER_USER}@${REMOTE_SERVER_IP}:${REMOTE_SERVER_PATH}/"
                     echo("Copied JAR file to remote server")
                 }
