@@ -43,7 +43,7 @@ pipeline {
                     echo("Found JAR file: ${jarFileName}")
 
                     
-                    sh "chmod 600 pemfile"
+                    // sh "chmod 600 pemfile"
 
                     // Copying JAR file to remote server
                     sh "scp -i pemfile ${jarFileName} ${REMOTE_SERVER_USER}@${REMOTE_SERVER_IP}:${REMOTE_SERVER_PATH}"
