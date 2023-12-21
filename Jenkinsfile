@@ -8,7 +8,7 @@ pipeline {
     }
 
     environment {
-        REMOTE_SERVER_IP = '65.2.187.26'
+        REMOTE_SERVER_IP = '15.206.151.75'
         REMOTE_SERVER_USER = 'ec2-user'
         REMOTE_SERVER_PATH = '/home/ec2-user'
         //CREDENTIALS_ID = 'server-access'
