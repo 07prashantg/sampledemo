@@ -53,6 +53,14 @@ pipeline {
 
                     // Use the private key file for scp
                     //sh "sudo chmod 400 /home/ec2-user/key.pem"
+
+                    sh "whoami"
+                    sh "ls -l /var/lib/jenkins/key.pem"
+                    sh "cat /var/lib/jenkins/key.pem"
+
+                    sh "chmod 400 /var/lib/jenkins/key.pem"
+                    sh "chown jenkins:jenkins /var/lib/jenkins/key.pem"
+
                     sh "scp -i /var/lib/jenkins/key.pem -o StrictHostKeyChecking=no target/*.jar ${REMOTE_SERVER_USER}@${REMOTE_SERVER_IP}:${REMOTE_SERVER_PATH}"
                     echo("Copied JAR file to remote server")
                     
