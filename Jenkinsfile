@@ -1,72 +1,143 @@
-@Library('groovy-library') _
+node {
+    def mvnHome
+    def remote = [:]
+    remote.name = 'test'
 
-pipeline {
-    agent any 
-
-    parameters{
-        choice(name: 'action', choices: 'create\ndelete', description: 'Choose create/Destroy')
+    remote.host = host
+    remote.user = user
+    remote.password =hostpassword
+    remote.allowAnyHosts = true
+ 
+    stage("check ssh"){
+         sshCommand remote: remote, command: "ls -lrt"
+         sshCommand remote: remote, command: "pwd"
     }
 
-    environment {
-        REMOTE_SERVER_IP = '15.206.151.75'
-        REMOTE_SERVER_USER = 'ec2-user'
-        REMOTE_SERVER_PATH = '/home/ec2-user'
-        //CREDENTIALS_ID = 'server-access'
+    stage("update system package")
+    {
+      if(params.UPDATESYSTEM==true){
+        sshCommand remote: remote, command: "yum update -y --nobest"
+        sshCommand remote: remote, command: "yum install -y python3"
+        sshCommand remote: remote, command: "yum install -y git"
+        sshCommand remote: remote, command: "yum install -y wget"
+        // sshCommand remote: remote, command: "yum install -y ansible-2.13.5"
+        sshCommand remote: remote, command: "yum -y install python3-pip"
+        sshCommand remote: remote, command: "pip3 -V"
+        sshCommand remote: remote, command: "pip3 install --upgrade pip"
+        sshCommand remote: remote, command: "pip3 install setuptools_rust"
+        sshCommand remote: remote, command: "pip3 install ansible"
+        sshCommand remote: remote, command: "mkdir -p /home/centos/mysetup"
+        sshCommand remote: remote, command: "ls -la /home/centos/mysetup"
+        sshCommand remote: remote, command: "cd /home/centos/mysetup && touch myfile.txt"
+        sshCommand remote: remote, command: "touch myfile.txt"
+        sshCommand remote: remote, command: "ls -la /home/centos/mysetup"
+        sshCommand remote: remote, command: "ansible --version"
+        sshCommand remote: remote, command: "python3 --version"
+        }
+        else{
+            echo "skiped system update"
+        }    
     }
 
-    stages {
-        stage('Git Checkout'){
-                    when { expression {  params.action == 'create' } }
-            steps{
-            gitCheckout(
-                branch: "main",
-                url: "https://github.com/07prashantg/sampledemo.git"
-            )
+    stage("Pull templates"){
+        sh 'echo $gitusername'
+        
+        try{
+            echo "removing old templates"
+            sshCommand remote: remote, command: 'cd /home/centos/mysetup && rm -rf HocalDevops'
+        }
+        catch (e){
+            echo e
+        }
+        echo "cloning latest"
+        sshCommand remote: remote, command: 'cd /home/centos/mysetup && git clone https://'+githocaltoken+'@github.com/hocalwire95/HocalDevops.git'
+        sshCommand remote: remote, command: 'ls /home/centos/mysetup'      
+    }
+
+    stage("setup mysql"){
+        if(params.MYSQL==true){
+        sshCommand remote: remote, command: 'cd /home/centos/mysetup && ansible-playbook HocalDevops/mysetup_plays/install_mysql/mysql.yaml  --extra-vars="mysql_new_pw="'+mysql_new_pw  
+        }
+        else{
+            echo "skiped mysql setup"
+        }
+    }
+
+    stage("setup nginx"){
+    if(params.NGINX==true){
+            try{
+            
+            sshCommand remote: remote, command: 'cd /home/centos/mysetup && ansible-playbook HocalDevops/mysetup_plays/install_nginx/nginx.yaml'
+            }
+            catch(e)
+            {
+                echo e
             }
         }
-        
-        stage('Maven Build : maven'){
-         when { expression {  params.action == 'create' } }
-            steps{
-               script{
-                   mvnBuild()
-                   'pwd'
-               }
-            }
+          else{
+            echo "skiped NGINX setup"
         }
         
-        stage("Saving in local") {
-            steps {
-                script {
-                    // Assuming your JAR file is in the target directory
-                    def jarFileName = sh(script: 'ls target/*.jar', returnStdout: true).trim()
-                    echo("Found JAR file: ${jarFileName}")
+    }
 
-                    
-                    // sh "chmod 600 pemfile"
-
-                    // Copying JAR file to remote server
-                    // withCredentials([file(credentialsId: 'pemfile', variable: 'KEYFILE')]) {
-                    // def privateKeyContent = readFile(KEYFILE).trim()
-                    // sh "echo '${privateKeyContent}' > private_key.pem" // Writing content to a file
-                    // sh "chmod 600 private_key.pem" // Setting correct permissions
-
-                    // Use the private key file for scp
-                    //sh "sudo chmod 400 /home/ec2-user/key.pem"
-
-                    sh "whoami"
-                    sh "ls -l /var/lib/jenkins/key.pem"
-                    sh "cat /var/lib/jenkins/key.pem"
-
-                    sh "chmod 400 /var/lib/jenkins/key.pem"
-                    sh "chown jenkins:jenkins /var/lib/jenkins/key.pem"
-
-                    sh "scp -i /var/lib/jenkins/key.pem -o StrictHostKeyChecking=no target/*.jar ${REMOTE_SERVER_USER}@${REMOTE_SERVER_IP}:${REMOTE_SERVER_PATH}"
-                    echo("Copied JAR file to remote server")
-                    
-                    
+    stage("setup nodejs"){
+              if(params.NODEJS==true){
+                try{
+                sshCommand remote: remote, command: 'cd /home/centos/mysetup && ansible-playbook HocalDevops/mysetup_plays/install_nodejs/nodejs1.yaml --extra-vars="githocaltoken="'+githocaltoken
+                }
+                catch(e){
+                    echo e
+                }
+                try{
+                sshCommand remote: remote, command: 'cd /home/centos/mysetup && ansible-playbook HocalDevops/mysetup_plays/install_nodejs/nodejs2.yaml --extra-vars="githocaltoken="'+githocaltoken
+                }
+                catch(e)
+                {
+                    echo e
                 }
             }
+              else{
+            echo "skiped NODEJS setup"
         }
+
     }
+
+    stage("java setup"){
+                if(params.JAVA==true){
+                    if (javaTar=="yes"){
+                        sshCommand remote: remote, command: 'cd /home/centos/mysetup && ansible-playbook HocalDevops/mysetup_plays/install_java/java_alternative.yaml'
+                    }
+                    else{
+                    sshCommand remote: remote, command: 'cd /home/centos/mysetup && ansible-playbook HocalDevops/mysetup_plays/install_java/java.yaml'
+                
+                    }
+                    }
+                else{
+                    echo "skiped JAVA setup"
+                }
+            }
+
+    stage("jetty setup"){
+            if(params.JETTY==true){
+                if (jettyTar=="yes"){
+                sshCommand remote: remote, command: 'cd /home/centos/mysetup && ansible-playbook HocalDevops/mysetup_plays/install_jetty/jetty_alternative.yaml --extra-vars="mysql_new_pw="'+mysql_new_pw  
+                }
+                else {
+                sshCommand remote: remote, command: 'cd /home/centos/mysetup && ansible-playbook HocalDevops/mysetup_plays/install_jetty/jetty.yaml'
+            
+                }
+            }
+            else{
+                   echo "skiped JETTY setup" 
+            }    
+            }
+
+    stage("image magicmagic"){
+            if(params.IMAGEMAGIC==true){
+             sshCommand remote: remote, command: 'cd /home/centos/mysetup && ansible-playbook HocalDevops/mysetup_plays/install_imagemagic/imagemagic.yaml'
+            }
+             else{
+                   echo "skiped magicmagic setup" 
+            }
+        }
 }
